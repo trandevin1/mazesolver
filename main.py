@@ -1,25 +1,18 @@
-
 from window import Window
-import point
-import cell
+from point import Line, Point
+from cell import Cell
+from maze import Maze
 
 
 def main():
-    win = Window(800, 600)
+    win = Window(1920, 1080)
+    num_rows = 7
+    num_cols = 7
+    x_ratio = 1920 // num_rows - 10
+    y_ratio = 1080 // num_cols - 10
 
-    pt1 = point.Point(200, 500)
-    pt2 = point.Point(100, 200)
-    line = point.Line(pt1, pt2)
-
-    pt3 = point.Point(100, 100)
-    pt4 = point.Point(200, 200)
-    line2 = point.Line(pt3, pt4)
-
-    cell1 = cell.Cell(pt3, pt4)
-
-    win.draw_cell(cell1, "black")
-    # win.draw_line(line, "red")
-    # win.draw_line(line2, "black")
+    maze = Maze(10, 10, num_rows, num_cols, x_ratio, y_ratio, win)
+    maze._break_entrance_and_exit()
 
     win.wait_for_close()
 
