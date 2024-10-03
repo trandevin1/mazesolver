@@ -2,7 +2,10 @@ from point import Line, Point
 
 
 class Cell:
-    def __init__(self, win=None):
+    def __init__(
+        self,
+        win=None,
+    ):
         self._visited = False
         self._win = win
         self._x1 = None
