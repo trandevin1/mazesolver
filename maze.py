@@ -114,3 +114,9 @@ class Maze:
             self._cells[next[0]][next[1]].has_left_wall = False
         else:
             return
+
+    def _reset_visited(self):
+        for i in range(self._num_rows):
+            for j in range(self._num_cols):
+                if self._cells[i][j]._visited:
+                    self._cells[i][j]._visited = False
