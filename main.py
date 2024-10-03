@@ -5,14 +5,20 @@ from maze import Maze
 
 
 def main():
-    win = Window(1920, 1080)
-    num_rows = 7
-    num_cols = 7
-    x_ratio = 1920 // num_rows - 10
-    y_ratio = 1080 // num_cols - 10
+    width = 1920
+    height = 1080
+    win = Window(width, height)
 
-    maze = Maze(10, 10, num_rows, num_cols, x_ratio, y_ratio, win)
+    num_rows = 10
+    num_cols = 10
+    margin = 30
+
+    x_ratio = (width - 2 * margin) // num_rows
+    y_ratio = (height - 2 * margin) // num_cols
+
+    maze = Maze(margin, margin, num_rows, num_cols, x_ratio, y_ratio, win, 10)
     maze._break_entrance_and_exit()
+    maze._break_walls_r(0, 0)
 
     win.wait_for_close()
 
