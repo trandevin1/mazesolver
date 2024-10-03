@@ -19,6 +19,7 @@ def main():
     maze = Maze(margin, margin, num_rows, num_cols, x_ratio, y_ratio, win, 10)
     maze._break_entrance_and_exit()
     maze._break_walls_r(0, 0)
+    maze._reset_visited()
 
     win.wait_for_close()
 
