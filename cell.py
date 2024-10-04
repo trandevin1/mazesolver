@@ -48,7 +48,7 @@ class Cell:
             self._win.draw_line(line)
 
     def draw_move(self, to_cell, undo=False):
-        fill_color = "grey"
+        fill_color = "green"
         if undo:
             fill_color = "red"
 
