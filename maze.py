@@ -123,6 +123,7 @@ class Maze:
                     self._cells[i][j]._visited = False
 
     def solve(self):
+        return self._solve_bfs(0, 0)
         return self._solve_r(0, 0)
 
     def _solve_r(self, i, j):
@@ -169,4 +170,44 @@ class Maze:
                         return True
                     else:
                         current_cell.draw_move(next_cell, True)
+        return False
+
+    def _solve_bfs(self, i, j):
+        to_visit = [(i, j)]
+
+        while len(to_visit) != 0:
+            self._animate()
+            current_cell = to_visit.pop(0)
+            i, j = current_cell[0], current_cell[1]
+            current_cell = self._cells[current_cell[0]][current_cell[1]]
+            current_cell._visited = True
+            if current_cell == self._cells[self._num_rows - 1][self._num_cols - 1]:
+                return True
+
+            neighbors = self._check_adjacent_cells(i, j)
+
+            for neighbor in neighbors:
+                next_cell = self._cells[neighbor[0]][neighbor[1]]
+                direction = neighbor[2]
+
+                if direction == "up":
+                    if not current_cell.has_bottom_wall and not next_cell.has_top_wall:
+                        current_cell.draw_move(next_cell)
+                        to_visit.append(neighbor)
+
+                elif direction == "down":
+                    if not current_cell.has_top_wall and not next_cell.has_bottom_wall:
+                        current_cell.draw_move(next_cell)
+                        to_visit.append(neighbor)
+
+                elif direction == "left":
+                    if not current_cell.has_left_wall and not next_cell.has_right_wall:
+                        current_cell.draw_move(next_cell)
+                        to_visit.append(neighbor)
+
+                else:
+                    if not current_cell.has_right_wall and not next_cell.has_left_wall:
+                        to_visit.append(neighbor)
+                        current_cell.draw_move(next_cell)
+
         return False
