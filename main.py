@@ -1,7 +1,6 @@
 from window import Window
-from point import Line, Point
-from cell import Cell
 from maze import Maze
+import time
 
 
 def main():
@@ -9,8 +8,8 @@ def main():
     height = 1080
     win = Window(width, height)
 
-    num_rows = 10
-    num_cols = 10
+    num_rows = 9
+    num_cols = 9
     margin = 30
 
     x_ratio = (width - 2 * margin) // num_rows
@@ -20,6 +19,11 @@ def main():
     maze._break_entrance_and_exit()
     maze._break_walls_r(0, 0)
     maze._reset_visited()
+
+    if maze.solve():
+        print("MAZE SOLVED!!!!!")
+    else:
+        print("NO SOLUTION!!!!!")
 
     win.wait_for_close()
 
