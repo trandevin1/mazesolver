@@ -5,7 +5,16 @@ import random
 
 class Maze:
     def __init__(
-        self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None, seed=None
+        self,
+        x1,
+        y1,
+        num_rows,
+        num_cols,
+        cell_size_x,
+        cell_size_y,
+        win=None,
+        seed=None,
+        cell_draw_speed=0,
     ):
         self._cells = []
         self._x1 = x1
@@ -15,17 +24,22 @@ class Maze:
         self._cell_size_x = cell_size_x
         self._cell_size_y = cell_size_y
         self._win = win
+        self.cell_draw_speed = cell_draw_speed
         self._create_cells()
         random.seed(seed) if seed else None
 
-    def _create_cells(self):
+    def change_configuration(self, row, column):
+        pass
 
+    def _create_cells(self):
+        self._cells = []
         for row in range(self._num_rows):
             col_list = []
             for col in range(self._num_cols):
                 col_list.append(Cell(self._win))
             self._cells.append(col_list)
 
+        self._win.clear_screen()
         for i in range(self._num_rows):
             for j in range(self._num_cols):
                 self._draw_cells(i, j)
@@ -40,20 +54,18 @@ class Maze:
         bottom_right_x = top_left_x + self._cell_size_x
         bottom_right_y = top_left_y + self._cell_size_y
         cell.draw(top_left_x, top_left_y, bottom_right_x, bottom_right_y)
-        self._animate()
+        self._animate(self.cell_draw_speed)
 
-    def _animate(self):
+    def _animate(self, time=0.05):
         if not self._win:
             return
         self._win.redraw()
-        sleep(0.05)
+        sleep(time)
 
     def _break_entrance_and_exit(self):
-        entrance_cell = self._cells[0][0].has_top_wall = False
+        self._cells[0][0].has_top_wall = False
         self._draw_cells(0, 0)
-        exit_cell = self._cells[self._num_rows - 1][
-            self._num_cols - 1
-        ].has_bottom_wall = False
+        self._cells[self._num_rows - 1][self._num_cols - 1].has_bottom_wall = False
         self._draw_cells(self._num_rows - 1, self._num_cols - 1)
 
     def _break_walls_r(self, i, j):
@@ -72,6 +84,7 @@ class Maze:
             random_direction = random.choice(to_visit)
             self._break_walls((i, j), random_direction, random_direction[2])
             self._break_walls_r(random_direction[0], random_direction[1])
+            self._animate()
 
     def _check_adjacent_cells(self, i, j):
         to_visit = []
@@ -122,12 +135,13 @@ class Maze:
                 if self._cells[i][j]._visited:
                     self._cells[i][j]._visited = False
 
-    def solve(self):
+    def solve(self, method="DFS"):
+        if method == "DFS":
+            return self._solve_r(0, 0)
         return self._solve_bfs(0, 0)
-        return self._solve_r(0, 0)
 
     def _solve_r(self, i, j):
-        self._animate()
+        self._animate(0.15)
         current_cell = self._cells[i][j]
         current_cell._visited = True
 
