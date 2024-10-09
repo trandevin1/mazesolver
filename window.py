@@ -1,11 +1,11 @@
 from tkinter import Tk, BOTH, Canvas, Menu, Toplevel, Label, Entry, Button, ttk
-
+import re
 
 DISPLAY_RESOLUTIONS = {
     "1920×1080": (1920, 1080),
-    "1366×768": (1366, 768),
     "1680x1050": (1680, 1050),
     "1680x1200": (1680, 1200),
+    "1366×768": (1366, 768),
     "1280x1024": (1280, 1024),
     "1280x800": (1280, 800),
     "1280x720": (1280, 720),
@@ -25,8 +25,12 @@ class Window:
         self.canvas.pack(fill=BOTH, expand=1)
         self.running = False
 
-    def resize_canvas(self, new_width, new_height):
-        self.canvas.config(width=new_width, height=new_height)
+    def get_current_maze(self, maze):
+        self.maze = maze
+
+    def resize_canvas(self, width_height_tuple):
+        self.canvas.config(width=width_height_tuple[0], height=width_height_tuple[1])
+        self.clear_screen()
 
     def clear_screen(self):
         self.canvas.delete("all")
@@ -63,35 +67,66 @@ class Window:
         new_window.geometry("500x300")
 
         # create all labels
-        row_label = Label(new_window, text="Row")
-        column_label = Label(new_window, text="Column")
+        row_label = Label(new_window, text="Row:")
+        column_label = Label(new_window, text="Column:")
         display_label = Label(new_window, text="Resolution:")
 
-        row_label.grid(row=0, column=0)
-        column_label.grid(row=1, column=0)
+        row_label.grid(row=0, column=0, sticky="w")
+        column_label.grid(row=1, column=0, sticky="w")
         display_label.grid(row=2, column=0)
 
         # entry fields
-        row_label_field = Entry(new_window, width=5)
-        column_label_field = Entry(new_window, width=5)
-        row_label_field.grid(row=0, column=1)
-        column_label_field.grid(row=1, column=1)
+        row_label_field = Entry(
+            new_window,
+            width=5,
+            validate="key",
+            validatecommand=(new_window.register(self.validate_int_val), "%S"),
+        )
+        column_label_field = Entry(
+            new_window,
+            width=5,
+            validate="key",
+            validatecommand=(new_window.register(self.validate_int_val), "%S"),
+        )
+        row_label_field.grid(row=0, column=1, sticky="w")
+        column_label_field.grid(row=1, column=1, sticky="w")
         row_label_field.insert(0, 12)
         column_label_field.insert(3, 12)
 
-        display = ttk.Combobox(new_window, )
+        display_combo = ttk.Combobox(
+            new_window,
+            values=list(DISPLAY_RESOLUTIONS.keys()),
+            width=10,
+            state="readonly",
+        )
+
+        display_combo.grid(row=2, column=1)
+        display_combo.current(0)
+
         set_button = Button(
             new_window,
             text="Set",
-            command=lambda: self.get_val(row_label_field, column_label_field),
+            command=lambda: self.change_maze_config(
+                row_label_field, column_label_field
+            ),
         )
-        set_button.grid(row=0, column=3)
+        set_button.grid(row=0, column=1, sticky="e")
 
-    def get_val(self, row, column):
-        # TODO
-        row_val = row.get()
-        col_val = column.get()
+        resize_button = Button(
+            new_window,
+            text="Resize",
+            command=lambda: self.resize_canvas(
+                DISPLAY_RESOLUTIONS[display_combo.get()]
+            ),
+        )
+        resize_button.grid(row=2, column=2)
 
-    def validate_val(self):
+    def change_maze_config(self, row, column):
         # TODO
         pass
+
+    def validate_int_val(self, value):
+        # TODO
+        if not re.match("^[0-9]*$", value):
+            return False
+        return True
