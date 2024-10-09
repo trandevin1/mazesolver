@@ -28,8 +28,16 @@ class Maze:
         self._create_cells()
         random.seed(seed) if seed else None
 
-    def change_configuration(self, row, column):
+    def run(self):
+        # TODO
         pass
+
+    def change_configuration(self, row, column):
+        self._num_cols = column
+        self._num_rows = row
+        self._cell_size_x = (self.width - 2 * self.margin) // self._num_rows
+        self._cell_size_y = (self.height - 2 * self.margin) // self._num_cols
+        self._create_cells()
 
     def _create_cells(self):
         self._cells = []
@@ -225,3 +233,7 @@ class Maze:
                         current_cell.draw_move(next_cell)
 
         return False
+
+    def _solve_astar(self):
+        # TODO
+        pass
