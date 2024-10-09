@@ -24,12 +24,7 @@ def main():
         y_ratio,
         win,
     )
-    # need to create a function to reset these vars
-    maze._num_cols = 12
-    maze._num_rows = 12
-    maze._cell_size_x = (width - 2 * margin) // 12
-    maze._cell_size_y = (height - 2 * margin) // 12
-    maze._create_cells()
+
     # maze._break_entrance_and_exit()
     # maze._break_walls_r(0, 0)
     # maze._reset_visited()
