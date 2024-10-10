@@ -31,11 +31,10 @@ class Maze:
         # TODO
         self._create_cells()
         self._win.get_maze(self)
-        # maze._break_entrance_and_exit()
-        # maze._break_walls_r(0, 0)
-        # maze._reset_visited()
-        # maze.solve()
-        pass
+        self._break_entrance_and_exit()
+        self._break_walls_r(0, 0)
+        self._reset_visited()
+        self.solve("bfs")
 
     def change_configuration(self, row, column):
         self._num_cols = column
@@ -153,9 +152,10 @@ class Maze:
                     self._cells[i][j]._visited = False
 
     def solve(self, method="DFS"):
-        if method == "DFS":
-            return self._solve_r(0, 0)
-        return self._solve_bfs(0, 0)
+        # if method == "DFS":
+        #     return self._solve_r(0, 0)
+        # return self._solve_bfs(0, 0)
+        print(self._solve_astar(0, 0))
 
     def _solve_r(self, i, j):
         self._animate(0.15)
@@ -204,15 +204,34 @@ class Maze:
         return False
 
     def _solve_bfs(self, i, j):
-        to_visit = [(i, j)]
+        start = (i, j)
+        to_visit = [start]
+
+        came_from = {}
 
         while len(to_visit) != 0:
             self._animate()
             current_cell = to_visit.pop(0)
             i, j = current_cell[0], current_cell[1]
-            current_cell = self._cells[current_cell[0]][current_cell[1]]
+            current_cell = self._cells[i][j]
             current_cell._visited = True
             if current_cell == self._cells[self._num_rows - 1][self._num_cols - 1]:
+                path = []
+                traversal = (i, j)
+                while traversal in came_from:
+                    path.append(traversal)
+                    traversal = came_from[traversal]
+                path.append(start)
+                path.reverse()
+                print(path)
+                for index in range(len(path) - 1):
+
+                    current = path[index]
+                    next = path[index + 1]
+                    current_node = self._cells[current[0]][current[1]]
+                    next_node = self._cells[next[0]][next[1]]
+                    current_node.draw_move(next_node, True)
+
                 return True
 
             neighbors = self._check_adjacent_cells(i, j)
@@ -225,28 +244,112 @@ class Maze:
                     if not current_cell.has_bottom_wall and not next_cell.has_top_wall:
                         current_cell.draw_move(next_cell)
                         to_visit.append(neighbor)
+                        came_from[(neighbor[0], neighbor[1])] = (i, j)
 
                 elif direction == "down":
                     if not current_cell.has_top_wall and not next_cell.has_bottom_wall:
                         current_cell.draw_move(next_cell)
                         to_visit.append(neighbor)
+                        came_from[(neighbor[0], neighbor[1])] = (i, j)
 
                 elif direction == "left":
                     if not current_cell.has_left_wall and not next_cell.has_right_wall:
                         current_cell.draw_move(next_cell)
                         to_visit.append(neighbor)
+                        came_from[(neighbor[0], neighbor[1])] = (i, j)
 
                 else:
                     if not current_cell.has_right_wall and not next_cell.has_left_wall:
                         to_visit.append(neighbor)
                         current_cell.draw_move(next_cell)
+                        came_from[(neighbor[0], neighbor[1])] = (i, j)
 
         return False
 
-    def _solve_astar(self):
-        # TODO
-        pass
+    def _solve_astar(self, i, j):
+        start = (0, (i, j))
+        open_set = [start]
+        came_from = {}
+        g_score = {start[1]: 0}
 
-    def astar_heuristic(self):
-        # TODO
-        pass
+        while open_set:
+            self._animate()
+            f_score, current = open_set.pop(0)
+            current_cell = self._cells[current[0]][current[1]]
+            current_cell.visited = True
+            if current == (self._num_rows - 1, self._num_cols - 1):
+                return True
+
+            neighbors = self._check_adjacent_cells(current[0], current[1])
+
+            for neighbor in neighbors:
+                next_cell = self._cells[neighbor[0]][neighbor[1]]
+                direction = neighbor[2]
+                tentative_g = g_score[current] + 1
+
+                if (neighbor[0], neighbor[1]) not in g_score or tentative_g < g_score[
+                    (neighbor[0], neighbor[1])
+                ]:
+                    if direction == "up":
+                        if (
+                            not current_cell.has_bottom_wall
+                            and not next_cell.has_top_wall
+                        ):
+                            g_score[(neighbor[0], neighbor[1])] = tentative_g
+                            f_score = tentative_g + self.astar_heuristic(
+                                (neighbor[0], neighbor[1])
+                            )
+                            open_set.append((f_score, (neighbor[0], neighbor[1])))
+                            current_cell.draw_move(next_cell)
+                            came_from[(neighbor[0], neighbor[1])] = current
+
+                    elif direction == "down":
+                        if (
+                            not current_cell.has_top_wall
+                            and not next_cell.has_bottom_wall
+                        ):
+                            g_score[(neighbor[0], neighbor[1])] = tentative_g
+                            f_score = tentative_g + self.astar_heuristic(
+                                (neighbor[0], neighbor[1])
+                            )
+                            open_set.append((f_score, (neighbor[0], neighbor[1])))
+                            current_cell.draw_move(next_cell)
+
+                            came_from[(neighbor[0], neighbor[1])] = current
+
+                    elif direction == "left":
+                        if (
+                            not current_cell.has_left_wall
+                            and not next_cell.has_right_wall
+                        ):
+                            g_score[(neighbor[0], neighbor[1])] = tentative_g
+                            f_score = tentative_g + self.astar_heuristic(
+                                (neighbor[0], neighbor[1])
+                            )
+                            open_set.append((f_score, (neighbor[0], neighbor[1])))
+                            current_cell.draw_move(next_cell)
+
+                            came_from[(neighbor[0], neighbor[1])] = current
+                    else:
+                        if (
+                            not current_cell.has_right_wall
+                            and not next_cell.has_left_wall
+                        ):
+                            g_score[(neighbor[0], neighbor[1])] = tentative_g
+                            f_score = tentative_g + self.astar_heuristic(
+                                (neighbor[0], neighbor[1])
+                            )
+                            open_set.append((f_score, (neighbor[0], neighbor[1])))
+                            current_cell.draw_move(next_cell)
+
+                            came_from[(neighbor[0], neighbor[1])] = current
+
+        return False
+
+    def astar_heuristic(self, start):
+        """
+        Using the Manhattan Distance Formula as the heuristic
+        """
+        return abs(start[0] - (self._num_rows - 1)) + abs(
+            start[1] - (self._num_cols - 2)
+        )
