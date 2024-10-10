@@ -23,10 +23,10 @@ class Window:
         self.init_menu_bar()
         self.canvas = Canvas(self.root_widget, bg="white", height=height, width=width)
         self.canvas.pack(fill=BOTH, expand=1)
-        self.running = False
+        
 
-    def get_current_maze(self, maze):
-        self.maze = maze
+        self.running = False
+        self.maze = None
 
     def resize_canvas(self, width_height_tuple):
         self.canvas.config(width=width_height_tuple[0], height=width_height_tuple[1])
@@ -107,7 +107,7 @@ class Window:
             new_window,
             text="Set",
             command=lambda: self.change_maze_config(
-                row_label_field, column_label_field
+                row_label_field.get(), column_label_field.get()
             ),
         )
         set_button.grid(row=0, column=1, sticky="e")
@@ -123,10 +123,16 @@ class Window:
 
     def change_maze_config(self, row, column):
         # TODO
-        pass
+        if not self.maze:
+            print("no maze")
+
+        print(row, column)
+        self.maze.change_configuration(int(row), int(column))
+
+    def get_maze(self, maze):
+        self.maze = maze
 
     def validate_int_val(self, value):
-        # TODO
         if not re.match("^[0-9]*$", value):
             return False
         return True
