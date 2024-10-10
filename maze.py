@@ -25,25 +25,34 @@ class Maze:
         self._cell_size_y = cell_size_y
         self._win = win
         self.cell_draw_speed = cell_draw_speed
-        self._create_cells()
         random.seed(seed) if seed else None
 
     def run(self):
         # TODO
+        self._create_cells()
+        self._win.get_maze(self)
+        # maze._break_entrance_and_exit()
+        # maze._break_walls_r(0, 0)
+        # maze._reset_visited()
+        # maze.solve()
         pass
 
     def change_configuration(self, row, column):
         self._num_cols = column
         self._num_rows = row
-        self._cell_size_x = (self.width - 2 * self.margin) // self._num_rows
-        self._cell_size_y = (self.height - 2 * self.margin) // self._num_cols
+        self._cell_size_x = (
+            self._win.canvas.winfo_width() - 2 * self._x1
+        ) // self._num_rows
+        self._cell_size_y = (
+            self._win.canvas.winfo_height() - 2 * self._y1
+        ) // self._num_cols
         self._create_cells()
 
     def _create_cells(self):
         self._cells = []
-        for row in range(self._num_rows):
+        for _ in range(self._num_rows):
             col_list = []
-            for col in range(self._num_cols):
+            for _ in range(self._num_cols):
                 col_list.append(Cell(self._win))
             self._cells.append(col_list)
 
@@ -235,5 +244,9 @@ class Maze:
         return False
 
     def _solve_astar(self):
+        # TODO
+        pass
+
+    def astar_heuristic(self):
         # TODO
         pass
