@@ -23,8 +23,6 @@ class Window:
         self.init_menu_bar()
         self.canvas = Canvas(self.root_widget, bg="white", height=height, width=width)
         self.canvas.pack(fill=BOTH, expand=1)
-        
-
         self.running = False
         self.maze = None
 
@@ -136,3 +134,51 @@ class Window:
         if not re.match("^[0-9]*$", value):
             return False
         return True
+
+
+
+class App(Tk):
+    def __init__(self, width, height):
+        super().__init__()
+        self.title("Main Window")
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.option_add("*tearoff", False)
+        self.minsize(600,600)
+        self.running = False
+        self.canvas = CustomCanvas(self, width, height)
+        # main loop substitute
+        self.wait_for_close()
+    
+    def close(self):
+        self.running = False
+
+    def redraw(self):
+        self.update_idletasks()
+        self.update()
+
+    def wait_for_close(self):
+        self.running = True
+        while self.running:
+            self.redraw()
+
+class CustomCanvas(Canvas):
+    def __init__(self, parent, width, height):
+        super().__init__(parent, bg="white", width=width, height=height)
+        self.pack(fill=BOTH, expand=1)
+    
+    def clear_screen(self):
+        self.delete("all")
+    
+    def resize_canvas(self, resolution):
+        self.config(width=resolution[0], height=resolution[1])
+        self.clear_screen()
+    
+    def draw_line(self, line, fill_color="black"):
+        line.draw(self, fill_color)
+
+
+class MenuBar(Menu):
+    def __init__():
+        super().__init__()
+
+
