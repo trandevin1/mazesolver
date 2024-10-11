@@ -30,7 +30,6 @@ class Maze:
     def run(self):
         # TODO
         self._create_cells()
-        self._win.get_maze(self)
         self._break_entrance_and_exit()
         self._break_walls_r(0, 0)
         self._reset_visited()
@@ -55,7 +54,6 @@ class Maze:
                 col_list.append(Cell(self._win))
             self._cells.append(col_list)
 
-        self._win.clear_screen()
         for i in range(self._num_rows):
             for j in range(self._num_cols):
                 self._draw_cells(i, j)

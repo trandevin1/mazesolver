@@ -1,5 +1,7 @@
 from point import Line, Point
 
+# refactor this
+
 
 class Cell:
     def __init__(
@@ -26,26 +28,26 @@ class Cell:
         white_bottom_line = Line(Point(x1, y2), Point(x2, y2))
         white_left_line = Line(Point(x1, y1), Point(x1, y2))
         white_right_line = Line(Point(x2, y1), Point(x2, y2))
-        self._win.draw_line(white_top_line, "white")
-        self._win.draw_line(white_bottom_line, "white")
-        self._win.draw_line(white_left_line, "white")
-        self._win.draw_line(white_right_line, "white")
+        self._win.canvas.draw_line(white_top_line, "white")
+        self._win.canvas.draw_line(white_bottom_line, "white")
+        self._win.canvas.draw_line(white_left_line, "white")
+        self._win.canvas.draw_line(white_right_line, "white")
 
         if self.has_top_wall:
             line = Line(Point(x1, y1), Point(x2, y1))
-            self._win.draw_line(line)
+            self._win.canvas.draw_line(line)
 
         if self.has_bottom_wall:
             line = Line(Point(x1, y2), Point(x2, y2))
-            self._win.draw_line(line)
+            self._win.canvas.draw_line(line)
 
         if self.has_left_wall:
             line = Line(Point(x1, y1), Point(x1, y2))
-            self._win.draw_line(line)
+            self._win.canvas.draw_line(line)
 
         if self.has_right_wall:
             line = Line(Point(x2, y1), Point(x2, y2))
-            self._win.draw_line(line)
+            self._win.canvas.draw_line(line)
 
     def draw_move(self, to_cell, undo=False):
         fill_color = "green"
@@ -59,7 +61,7 @@ class Cell:
         )
 
         line = Line(Point(mid[0], mid[1]), Point(mid_to_cell[0], mid_to_cell[1]))
-        self._win.draw_line(line, fill_color)
+        self._win.canvas.draw_line(line, fill_color)
 
     def __repr__(self):
         return f"Cell"
