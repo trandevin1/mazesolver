@@ -1,6 +1,6 @@
 from tkinter import Tk, BOTH, Canvas, Menu, Toplevel, Label, Entry, Button, ttk
 import re
-from maze import Maze
+from maze import Maze, PrintCommand
 
 DISPLAY_RESOLUTIONS = {
     "1920×1080": (1920, 1080),
@@ -149,7 +149,7 @@ class MenuOption(Menu):
         set_button = Button(
             config_window,
             text="Set",
-            command=lambda: self.change_maze_config(
+            command=lambda: self.send_values(
                 row_label_field.get(), column_label_field.get()
             ),
         )
@@ -177,6 +177,10 @@ class MenuOption(Menu):
 
         print(row, column)
         self.root_win.maze.change_configuration(int(row), int(column))
+
+    def send_values(self, row, column):
+        cmd = PrintCommand(self.root_win.maze)
+        cmd.execute(values=(row, column))
 
 
 class Window(Toplevel):
