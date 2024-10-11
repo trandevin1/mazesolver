@@ -1,6 +1,24 @@
 from cell import Cell
 from time import sleep
 import random
+from abc import ABC, abstractmethod
+
+
+class Command(ABC):
+    def __init__(self, reciever):
+        self.reciever = reciever
+
+    @abstractmethod
+    def execute(self):
+        pass
+
+
+class PrintCommand(Command):
+    def __init__(self, reciever):
+        self.reciever = reciever
+
+    def execute(self, values):
+        self.reciever.print(values)
 
 
 class Maze:
@@ -27,11 +45,14 @@ class Maze:
         self.cell_draw_speed = cell_draw_speed
         random.seed(seed) if seed else None
 
+    def print(self, values):
+        print(f"{values}")
+
     def run(self):
         # TODO
         self._create_cells()
         self._break_entrance_and_exit()
-        self._break_walls_r(0, 0)
+        self._break_walls_iteratively(0, 0)
         self._reset_visited()
         self.solve("bfs")
 
@@ -99,6 +120,38 @@ class Maze:
             self._break_walls((i, j), random_direction, random_direction[2])
             self._break_walls_r(random_direction[0], random_direction[1])
             self._animate()
+
+    def _break_walls_iteratively(self, i, j):
+        # TODO
+        to_visit = [(i, j)]
+
+        while to_visit:
+            # get current cell
+            current = to_visit.pop(-1)
+            current_cell = self._cells[current[0]][current[1]]
+            current_cell._visited = True
+
+            # get neighbors
+            neighbors = self._check_adjacent_cells(current[0], current[1])
+
+            # random direction
+            if neighbors:
+                random_direction = random.choice(neighbors)
+                self._break_walls(
+                    current,
+                    (random_direction[0], random_direction[1]),
+                    random_direction[2],
+                )
+                # draw current cell
+                current_cell.draw(
+                    current_cell._x1,
+                    current_cell._y1,
+                    current_cell._x2,
+                    current_cell._y2,
+                )
+
+                to_visit.extend(neighbors)
+                self._animate()
 
     def _check_adjacent_cells(self, i, j):
         to_visit = []
