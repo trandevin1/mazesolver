@@ -3,6 +3,9 @@ from time import sleep
 import random
 
 
+#### REFACTOR THIS CODE HOLY
+
+
 class Maze:
     def __init__(
         self,
@@ -34,7 +37,7 @@ class Maze:
         self._break_entrance_and_exit()
         self._break_walls_r(0, 0)
         self._reset_visited()
-        self.solve("bfs")
+        self.solve()
 
     def change_configuration(self, row, column):
         self._num_cols = column
@@ -100,7 +103,7 @@ class Maze:
             random_direction = random.choice(to_visit)
             self._break_walls((i, j), random_direction, random_direction[2])
             self._break_walls_r(random_direction[0], random_direction[1])
-            self._animate()
+            self._animate(0.01)
 
     def _check_adjacent_cells(self, i, j):
         to_visit = []
@@ -152,10 +155,10 @@ class Maze:
                     self._cells[i][j]._visited = False
 
     def solve(self, method="DFS"):
-        # if method == "DFS":
-        #     return self._solve_r(0, 0)
+        if method == "DFS":
+            return self._solve_r(0, 0)
         # return self._solve_bfs(0, 0)
-        print(self._solve_astar(0, 0))
+        #print(self._solve_astar(0, 0))
 
     def _solve_r(self, i, j):
         self._animate(0.15)
