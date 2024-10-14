@@ -1,6 +1,6 @@
 from tkinter import Tk, BOTH, Canvas, Menu, Toplevel, Label, Entry, Button, ttk
 import re
-from maze import Maze, PrintCommand
+from maze import Maze, PrintCommand, ChangeConfiguration
 
 DISPLAY_RESOLUTIONS = {
     "1920×1080": (1920, 1080),
@@ -22,8 +22,8 @@ class App(Tk):
         height=600,
         x_margin=30,
         y_margin=30,
-        row=9,
-        column=9,
+        row=10,
+        column=10,
     ):
         """
         This is the main app where all the GUI is initialized along with
@@ -50,7 +50,7 @@ class App(Tk):
             self,
             None,
         )
-        self.maze.run()
+        self.maze.inital_run()
 
         # main loop
         self.wait_for_close()
@@ -72,6 +72,7 @@ class App(Tk):
 class CustomCanvas(Canvas):
     def __init__(self, root, width, height):
         super().__init__(root, bg="white", width=width, height=height)
+        self.root = root
         self.pack(fill=BOTH, expand=1)
 
         # create menubar widget
@@ -81,8 +82,9 @@ class CustomCanvas(Canvas):
         self.delete("all")
 
     def resize_canvas(self, resolution):
-        self.config(width=resolution[0], height=resolution[1])
-        self.clear_screen()
+        if not self.root.maze.draw_state:
+            self.config(width=resolution[0], height=resolution[1])
+            self.clear_screen()
 
     def draw_line(self, line, fill_color="black"):
         line.draw(self, fill_color)
@@ -91,8 +93,8 @@ class CustomCanvas(Canvas):
 class MenuBar(Menu):
     def __init__(self, root):
         super().__init__(root)
-        option = MenuOption(root)
-        self.add_cascade(label="Options", menu=option)
+        self.option = MenuOption(root)
+        self.add_cascade(label="Options", menu=self.option)
         root.config(menu=self)
 
 
@@ -105,55 +107,57 @@ class MenuOption(Menu):
 
     def maze_configuration(self):
         # make a window
-        config_window = Window(self.root_win, "Maze Configuration", "800x600")
-        config_window.grid()
+        config_window = Window(self.root_win, "Maze Configuration", "300x300")
 
-        # create all labels
+        config_window.columnconfigure((0,1), weight=1, uniform="a")
+        config_window.rowconfigure((0,1,2,3,4,5), weight=1, uniform="a")
+
+        # # create all labels
         row_label = Label(config_window, text="Row:")
         column_label = Label(config_window, text="Column:")
         display_label = Label(config_window, text="Resolution:")
 
-        # position the labels
-        row_label.grid(row=0, column=0, sticky="w")
-        column_label.grid(row=1, column=0, sticky="w")
-        display_label.grid(row=2, column=0)
+        # # position the labels
+        row_label.grid(row=0, column=0, sticky="n")
+        column_label.grid(row=0, column=1, sticky="n")
+        display_label.grid(row=2, column=0, sticky="ns")
 
         # entry fields
         row_label_field = Entry(
             config_window,
-            width=5,
             validate="key",
-            validatecommand=(config_window.register(self.validate_int_val), "%S"),
+            validatecommand=(config_window.register(self.validate_int_val), "%P"),
         )
         column_label_field = Entry(
             config_window,
-            width=5,
             validate="key",
-            validatecommand=(config_window.register(self.validate_int_val), "%S"),
+            validatecommand=(config_window.register(self.validate_int_val), "%P"),
         )
-        row_label_field.grid(row=0, column=1, sticky="w")
-        column_label_field.grid(row=1, column=1, sticky="w")
+        row_label_field.grid(row=0, column=0, sticky="s")
+        column_label_field.grid(row=0, column=1, sticky="s")
         row_label_field.insert(0, 12)
-        column_label_field.insert(3, 12)
+        column_label_field.insert(0, 12)
+        set_button = Button(
+            config_window,
+            text="Set",
+            command=lambda: self.change_maze_size(
+                row_label_field, column_label_field
+            ),
+            
+        )
+        set_button.grid(row=1, column=0, columnspan=2, sticky="nwes")
+        
 
         display_combo = ttk.Combobox(
             config_window,
             values=list(DISPLAY_RESOLUTIONS.keys()),
             width=10,
             state="readonly",
+
         )
 
         display_combo.grid(row=2, column=1)
         display_combo.current(0)
-
-        set_button = Button(
-            config_window,
-            text="Set",
-            command=lambda: self.send_values(
-                row_label_field.get(), column_label_field.get()
-            ),
-        )
-        set_button.grid(row=0, column=1, sticky="e")
 
         resize_button = Button(
             config_window,
@@ -162,26 +166,30 @@ class MenuOption(Menu):
                 DISPLAY_RESOLUTIONS[display_combo.get()]
             ),
         )
-        resize_button.grid(row=2, column=2)
+        resize_button.grid(row=3, column=0, columnspan=2, sticky="wens")
+
+        # run_button = Button(config_window, text="Run", command=lambda: self.send_values(row_label_field.get(), column_label_field.get()))
+        # run_button.grid()
 
     def validate_int_val(self, value):
-        if not re.match("^[0-9]*$", value):
-            return False
-        return True
+        if (re.match("^[0-9]*$", value)) and (len(value) < 4):
+            return True
+        return False
 
-    def change_maze_config(self, row, column):
-        # TODO
+    def change_maze_size(self, row, column):
+        row_value = row.get()
+        column_value = column.get()
+        if row_value != '' and column_value != '' and ( 2 < int(row_value) < 255) and (2 < int(column_value) < 255):
+            row.configure(highlightbackground="green", highlightcolor="green")
+            column.configure(highlightbackground="green", highlightcolor="green")
+            self.root_win.canvas.clear_screen()
+            cmd = ChangeConfiguration(self.root_win.maze)
+            cmd.execute(int(row_value), int(column_value))
+        else:
+            row.configure(highlightbackground="red", highlightcolor="red")
+            column.configure(highlightbackground="red", highlightcolor="red")
 
-        if not self.root_win.maze:
-            print("no maze")
-
-        print(row, column)
-        self.root_win.maze.change_configuration(int(row), int(column))
-
-    def send_values(self, row, column):
-        cmd = PrintCommand(self.root_win.maze)
-        cmd.execute(values=(row, column))
-
+            
 
 class Window(Toplevel):
     def __init__(self, root, title, geometry):
