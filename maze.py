@@ -12,13 +12,19 @@ class Command(ABC):
     def execute(self):
         pass
 
-
 class PrintCommand(Command):
     def __init__(self, reciever):
         self.reciever = reciever
 
     def execute(self, values):
-        self.reciever.print(values)
+        self.reciever._print(values)
+
+class ChangeConfiguration(Command):
+    def __init__(self, reciever):
+        self.reciever = reciever
+    
+    def execute(self, row, column):
+        self.reciever._change_maze_size(row, column)
 
 
 class Maze:
@@ -32,7 +38,7 @@ class Maze:
         cell_size_y,
         win=None,
         seed=None,
-        cell_draw_speed=0,
+        cell_draw_speed = 0.0,
     ):
         self._cells = []
         self._x1 = x1
@@ -43,12 +49,10 @@ class Maze:
         self._cell_size_y = cell_size_y
         self._win = win
         self.cell_draw_speed = cell_draw_speed
+        self.draw_state = False
         random.seed(seed) if seed else None
-
-    def print(self, values):
-        print(f"{values}")
-
-    def run(self):
+        
+    def inital_run(self):
         # TODO
         self._create_cells()
         self._break_entrance_and_exit()
@@ -56,7 +60,7 @@ class Maze:
         self._reset_visited()
         self.solve("bfs")
 
-    def change_configuration(self, row, column):
+    def _change_maze_size(self, row, column):
         self._num_cols = column
         self._num_rows = row
         self._cell_size_x = (
@@ -78,7 +82,7 @@ class Maze:
         for i in range(self._num_rows):
             for j in range(self._num_cols):
                 self._draw_cells(i, j)
-
+        
     def _draw_cells(self, i, j):
         if not self._win:
             return
@@ -122,7 +126,6 @@ class Maze:
             self._animate()
 
     def _break_walls_iteratively(self, i, j):
-        # TODO
         to_visit = [(i, j)]
 
         while to_visit:
@@ -203,9 +206,7 @@ class Maze:
                     self._cells[i][j]._visited = False
 
     def solve(self, method="DFS"):
-        # if method == "DFS":
-        #     return self._solve_r(0, 0)
-        # return self._solve_bfs(0, 0)
+        # TODO
         print(self._solve_astar(0, 0))
 
     def _solve_r(self, i, j):
@@ -347,7 +348,7 @@ class Maze:
                             and not next_cell.has_top_wall
                         ):
                             g_score[(neighbor[0], neighbor[1])] = tentative_g
-                            f_score = tentative_g + self.astar_heuristic(
+                            f_score = tentative_g + self._astar_heuristic(
                                 (neighbor[0], neighbor[1])
                             )
                             open_set.append((f_score, (neighbor[0], neighbor[1])))
@@ -360,7 +361,7 @@ class Maze:
                             and not next_cell.has_bottom_wall
                         ):
                             g_score[(neighbor[0], neighbor[1])] = tentative_g
-                            f_score = tentative_g + self.astar_heuristic(
+                            f_score = tentative_g + self._astar_heuristic(
                                 (neighbor[0], neighbor[1])
                             )
                             open_set.append((f_score, (neighbor[0], neighbor[1])))
@@ -374,7 +375,7 @@ class Maze:
                             and not next_cell.has_right_wall
                         ):
                             g_score[(neighbor[0], neighbor[1])] = tentative_g
-                            f_score = tentative_g + self.astar_heuristic(
+                            f_score = tentative_g + self._astar_heuristic(
                                 (neighbor[0], neighbor[1])
                             )
                             open_set.append((f_score, (neighbor[0], neighbor[1])))
@@ -387,7 +388,7 @@ class Maze:
                             and not next_cell.has_left_wall
                         ):
                             g_score[(neighbor[0], neighbor[1])] = tentative_g
-                            f_score = tentative_g + self.astar_heuristic(
+                            f_score = tentative_g + self._astar_heuristic(
                                 (neighbor[0], neighbor[1])
                             )
                             open_set.append((f_score, (neighbor[0], neighbor[1])))
@@ -397,7 +398,7 @@ class Maze:
 
         return False
 
-    def astar_heuristic(self, start):
+    def _astar_heuristic(self, start):
         """
         Using the Manhattan Distance Formula as the heuristic
         """
