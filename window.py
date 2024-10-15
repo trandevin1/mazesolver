@@ -103,7 +103,7 @@ class MenuOption(Menu):
         self.root_win = root
         super().__init__(root, tearoff=0)
         self.add_command(label="Maze Configuration", command=self.maze_configuration)
-        self.add_command(label="Exit", command=root.close)
+        self.add_command(label="Exit", command=self.root_win.close)
 
     def maze_configuration(self):
         # make a window
@@ -168,8 +168,9 @@ class MenuOption(Menu):
         )
         resize_button.grid(row=3, column=0, columnspan=2, sticky="wens")
 
-        # run_button = Button(config_window, text="Run", command=lambda: self.send_values(row_label_field.get(), column_label_field.get()))
-        # run_button.grid()
+        run_button = Button(config_window, text="Run", command=lambda: print("run"))
+        run_button.grid(row=5, column=0, columnspan=2, sticky="s")
+
 
     def validate_int_val(self, value):
         if (re.match("^[0-9]*$", value)) and (len(value) < 4):
@@ -179,7 +180,7 @@ class MenuOption(Menu):
     def change_maze_size(self, row, column):
         row_value = row.get()
         column_value = column.get()
-        if row_value != '' and column_value != '' and ( 2 < int(row_value) < 255) and (2 < int(column_value) < 255):
+        if row_value != '' and column_value != '' and ( 2 < int(row_value) < 101) and (2 < int(column_value) < 101):
             row.configure(highlightbackground="green", highlightcolor="green")
             column.configure(highlightbackground="green", highlightcolor="green")
             self.root_win.canvas.clear_screen()
@@ -188,8 +189,6 @@ class MenuOption(Menu):
         else:
             row.configure(highlightbackground="red", highlightcolor="red")
             column.configure(highlightbackground="red", highlightcolor="red")
-
-            
 
 class Window(Toplevel):
     def __init__(self, root, title, geometry):
