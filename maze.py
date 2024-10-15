@@ -12,6 +12,7 @@ class Command(ABC):
     def execute(self):
         pass
 
+
 class PrintCommand(Command):
     def __init__(self, reciever):
         self.reciever = reciever
@@ -19,10 +20,11 @@ class PrintCommand(Command):
     def execute(self, values):
         self.reciever._print(values)
 
+
 class ChangeConfiguration(Command):
     def __init__(self, reciever):
         self.reciever = reciever
-    
+
     def execute(self, row, column):
         self.reciever._change_maze_size(row, column)
 
@@ -38,7 +40,9 @@ class Maze:
         cell_size_y,
         win=None,
         seed=None,
-        cell_draw_speed = 0.0,
+        cell_draw_speed=0.0,
+        break_draw_speed=0.0,
+        path_draw_speed=0.0,
     ):
         self._cells = []
         self._x1 = x1
@@ -49,9 +53,11 @@ class Maze:
         self._cell_size_y = cell_size_y
         self._win = win
         self.cell_draw_speed = cell_draw_speed
+        self.break_draw_speed = break_draw_speed
+        self.path_draw_speed = path_draw_speed
         self.draw_state = False
         random.seed(seed) if seed else None
-        
+
     def inital_run(self):
         # TODO
         self._create_cells()
@@ -82,7 +88,7 @@ class Maze:
         for i in range(self._num_rows):
             for j in range(self._num_cols):
                 self._draw_cells(i, j)
-        
+
     def _draw_cells(self, i, j):
         if not self._win:
             return
