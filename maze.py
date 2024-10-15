@@ -40,9 +40,9 @@ class Maze:
         cell_size_y,
         win=None,
         seed=None,
-        cell_draw_speed=0.0,
-        break_draw_speed=0.0,
-        path_draw_speed=0.0,
+        cell_draw_speed=0.05,
+        break_draw_speed=0.05,
+        path_draw_speed=0.05,
     ):
         self._cells = []
         self._x1 = x1
@@ -57,6 +57,18 @@ class Maze:
         self.path_draw_speed = path_draw_speed
         self.draw_state = False
         random.seed(seed) if seed else None
+
+    def set_cell_draw_speed(self, speed: float) -> None:
+        # TODO
+        pass
+
+    def set_break_draw_speed(self, speed: float) -> None:
+        # TODO
+        pass
+
+    def set_path_draw_speed(self, speed: float) -> None:
+        # TODO
+        pass
 
     def inital_run(self):
         # TODO
@@ -160,7 +172,7 @@ class Maze:
                 )
 
                 to_visit.extend(neighbors)
-                self._animate()
+                self._animate(self.break_draw_speed)
 
     def _check_adjacent_cells(self, i, j):
         to_visit = []
@@ -216,7 +228,7 @@ class Maze:
         print(self._solve_astar(0, 0))
 
     def _solve_r(self, i, j):
-        self._animate(0.15)
+        self._animate(self.path_draw_speed)
         current_cell = self._cells[i][j]
         current_cell._visited = True
 
@@ -268,7 +280,7 @@ class Maze:
         came_from = {}
 
         while len(to_visit) != 0:
-            self._animate()
+            self._animate(self.path_draw_speed)
             current_cell = to_visit.pop(0)
             i, j = current_cell[0], current_cell[1]
             current_cell = self._cells[i][j]
@@ -331,7 +343,7 @@ class Maze:
         g_score = {start[1]: 0}
 
         while open_set:
-            self._animate()
+            self._animate(self.path_draw_speed)
             f_score, current = open_set.pop(0)
             current_cell = self._cells[current[0]][current[1]]
             current_cell.visited = True
