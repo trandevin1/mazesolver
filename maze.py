@@ -26,7 +26,9 @@ class ChangeConfiguration(Command):
         self.reciever = reciever
 
     def execute(self, row, column):
+        self.reciever.draw_state = True
         self.reciever._change_maze_size(row, column)
+        self.reciever.draw_state = False
 
 
 class Maze:
@@ -59,24 +61,32 @@ class Maze:
         random.seed(seed) if seed else None
 
     def set_cell_draw_speed(self, speed: float) -> None:
-        # TODO
-        pass
+        self.cell_draw_speed = speed
 
     def set_break_draw_speed(self, speed: float) -> None:
-        # TODO
-        pass
+        self.break_draw_speed = speed
 
     def set_path_draw_speed(self, speed: float) -> None:
-        # TODO
-        pass
+        self.path_draw_speed = speed
+
+    def get_cell_draw_speed(self) -> float:
+        return self.cell_draw_speed
+
+    def get_break_draw_speed(self) -> float:
+        return self.break_draw_speed
+
+    def get_path_draw_speed(self) -> float:
+        return self.path_draw_speed
 
     def inital_run(self):
         # TODO
+        self.draw_state = True
         self._create_cells()
         self._break_entrance_and_exit()
         self._break_walls_iteratively(0, 0)
         self._reset_visited()
         self.solve("bfs")
+        self.draw_state = False
 
     def _change_maze_size(self, row, column):
         self._num_cols = column
