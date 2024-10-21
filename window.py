@@ -98,6 +98,9 @@ class MenuBar(Menu):
         root.config(menu=self)
 
 
+# TODO make a class to contain the maze config window
+
+
 class MenuOption(Menu):
     def __init__(self, root):
         self.root_win = root
@@ -107,22 +110,19 @@ class MenuOption(Menu):
 
     def maze_configuration(self):
         # make a window
-        config_window = Window(self.root_win, "Maze Configuration", "300x300")
+        config_window = Window(self.root_win, "Maze Configuration", "300x600")
+        config_window.resizable(False, False)
 
-        config_window.columnconfigure((0,1), weight=1, uniform="a")
-        config_window.rowconfigure((0,1,2,3,4,5), weight=1, uniform="a")
+        config_window.columnconfigure((0, 1), weight=1, uniform="a")
+        config_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 8, 9), weight=1, uniform="a")
 
-        # # create all labels
+        # create widgets
         row_label = Label(config_window, text="Row:")
         column_label = Label(config_window, text="Column:")
         display_label = Label(config_window, text="Resolution:")
-
-        # # position the labels
-        row_label.grid(row=0, column=0, sticky="n")
-        column_label.grid(row=0, column=1, sticky="n")
-        display_label.grid(row=2, column=0, sticky="ns")
-
-        # entry fields
+        break_speed_label = Label(config_window, text="Wall Break Speed:")
+        cell_speed_label = Label(config_window, text="Cell Draw Speed:")
+        path_speed_label = Label(config_window, text="Path Speed:")
         row_label_field = Entry(
             config_window,
             validate="key",
@@ -133,32 +133,33 @@ class MenuOption(Menu):
             validate="key",
             validatecommand=(config_window.register(self.validate_int_val), "%P"),
         )
-        row_label_field.grid(row=0, column=0, sticky="s")
-        column_label_field.grid(row=0, column=1, sticky="s")
-        row_label_field.insert(0, 12)
-        column_label_field.insert(0, 12)
+        cell_speed_entry = Entry(
+            config_window,
+            validate="key",
+            validatecommand=(config_window.register(self.validate_float_val), "%P"),
+        )
+        break_speed_entry = Entry(
+            config_window,
+            validate="key",
+            validatecommand=(config_window.register(self.validate_float_val), "%P"),
+        )
+        path_speed_entry = Entry(
+            config_window,
+            validate="key",
+            validatecommand=(config_window.register(self.validate_float_val), "%P"),
+        )
+
         set_button = Button(
             config_window,
             text="Set",
-            command=lambda: self.change_maze_size(
-                row_label_field, column_label_field
-            ),
-            
+            command=lambda: self.change_maze_size(row_label_field, column_label_field),
         )
-        set_button.grid(row=1, column=0, columnspan=2, sticky="nwes")
-        
-
         display_combo = ttk.Combobox(
             config_window,
             values=list(DISPLAY_RESOLUTIONS.keys()),
             width=10,
             state="readonly",
-
         )
-
-        display_combo.grid(row=2, column=1)
-        display_combo.current(0)
-
         resize_button = Button(
             config_window,
             text="Resize",
@@ -166,11 +167,43 @@ class MenuOption(Menu):
                 DISPLAY_RESOLUTIONS[display_combo.get()]
             ),
         )
-        resize_button.grid(row=3, column=0, columnspan=2, sticky="wens")
+        set_speed_button = Button(
+            config_window, text="Set Speeds", command=lambda: print("sonic")
+        )
 
-        run_button = Button(config_window, text="Run", command=lambda: print("run"))
-        run_button.grid(row=5, column=0, columnspan=2, sticky="s")
+        # position the widgets and draw them
+        row_label.grid(row=0, column=0, sticky="n")
+        row_label_field.grid(row=0, column=0, sticky="s")
+        column_label.grid(row=0, column=1, sticky="n")
+        column_label_field.grid(row=0, column=1, sticky="s")
+        set_button.grid(row=1, column=0, columnspan=2, sticky="")
 
+        display_label.grid(row=2, column=0, sticky="ns")
+        resize_button.grid(row=3, column=0, columnspan=2, sticky="n")
+
+        cell_speed_label.grid(row=3, column=0, sticky="s")
+        cell_speed_entry.grid(row=3, column=1, sticky="ws")
+        break_speed_label.grid(row=4, column=0, sticky="")
+        break_speed_entry.grid(row=4, column=1, sticky="w")
+        path_speed_label.grid(row=5, column=0, sticky="n")
+        path_speed_entry.grid(row=5, column=1, sticky="nw")
+        set_speed_button.grid(row=5, column=0, columnspan=2, sticky="s")
+
+        row_label_field.insert(0, "12")
+        column_label_field.insert(0, "12")
+        cell_speed_entry.insert(0, "0.0")
+        break_speed_entry.insert(0, "0.0")
+        path_speed_entry.insert(0, "0.0")
+        display_combo.grid(row=2, column=1)
+        display_combo.current(0)
+
+        # run_button = Button(config_window, text="Run", command=lambda: print("run"))
+        # run_button.grid(row=5, column=0, columnspan=2, sticky="s")
+
+    def validate_float_val(self, value):
+        if re.match("^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$", value):
+            return True
+        return False
 
     def validate_int_val(self, value):
         if (re.match("^[0-9]*$", value)) and (len(value) < 4):
@@ -180,7 +213,13 @@ class MenuOption(Menu):
     def change_maze_size(self, row, column):
         row_value = row.get()
         column_value = column.get()
-        if row_value != '' and column_value != '' and ( 2 < int(row_value) < 101) and (2 < int(column_value) < 101):
+        if (
+            row_value != ""
+            and column_value != ""
+            and (2 < int(row_value) < 101)
+            and (2 < int(column_value) < 101)
+            and not self.root_win.maze.draw_state
+        ):
             row.configure(highlightbackground="green", highlightcolor="green")
             column.configure(highlightbackground="green", highlightcolor="green")
             self.root_win.canvas.clear_screen()
@@ -189,6 +228,7 @@ class MenuOption(Menu):
         else:
             row.configure(highlightbackground="red", highlightcolor="red")
             column.configure(highlightbackground="red", highlightcolor="red")
+
 
 class Window(Toplevel):
     def __init__(self, root, title, geometry):
