@@ -2,6 +2,13 @@ from cell import Cell
 from time import sleep
 import random
 from abc import ABC, abstractmethod
+from enum import Enum
+
+
+class SolveMethod(Enum):
+    ASTAR = 0
+    BFS = 1
+    DFS = 2
 
 
 class Command(ABC):
@@ -31,6 +38,14 @@ class ChangeConfiguration(Command):
         self.reciever.draw_state = False
 
 
+class ChangeAnimationSpeed(Command):
+    def __init__(self, reciever):
+        self.reciever = reciever
+
+    def execute(self, speed):
+        self.reciever.set_animation_draw_speed(speed)
+
+
 class Maze:
     def __init__(
         self,
@@ -42,9 +57,7 @@ class Maze:
         cell_size_y,
         win=None,
         seed=None,
-        cell_draw_speed=0.05,
-        break_draw_speed=0.05,
-        path_draw_speed=0.05,
+        animation_draw_speed=0.05,
     ):
         self._cells = []
         self._x1 = x1
@@ -54,29 +67,27 @@ class Maze:
         self._cell_size_x = cell_size_x
         self._cell_size_y = cell_size_y
         self._win = win
-        self.cell_draw_speed = cell_draw_speed
-        self.break_draw_speed = break_draw_speed
-        self.path_draw_speed = path_draw_speed
+        self.animation_draw_speed = animation_draw_speed
         self.draw_state = False
         random.seed(seed) if seed else None
 
-    def set_cell_draw_speed(self, speed: float) -> None:
-        self.cell_draw_speed = speed
+    def set_animation_draw_speed(self, speed: float | None = None) -> None:
+        if speed is not None:
+            self.animation_draw_speed = speed
 
-    def set_break_draw_speed(self, speed: float) -> None:
-        self.break_draw_speed = speed
+    def get_animation_draw_speed(self) -> float:
+        return self.animation_draw_speed
 
-    def set_path_draw_speed(self, speed: float) -> None:
-        self.path_draw_speed = speed
-
-    def get_cell_draw_speed(self) -> float:
-        return self.cell_draw_speed
-
-    def get_break_draw_speed(self) -> float:
-        return self.break_draw_speed
-
-    def get_path_draw_speed(self) -> float:
-        return self.path_draw_speed
+    def run(self, solve_method):
+        # TODO
+        pass
+        self.draw_state = True
+        self._create_cells()
+        self._break_entrance_and_exit()
+        self._break_walls_iteratively(0, 0)
+        self._reset_visited()
+        self.solve(solve_method)
+        self.draw_state = False
 
     def inital_run(self):
         # TODO
@@ -85,7 +96,7 @@ class Maze:
         self._break_entrance_and_exit()
         self._break_walls_iteratively(0, 0)
         self._reset_visited()
-        self.solve("bfs")
+        self.solve()
         self.draw_state = False
 
     def _change_maze_size(self, row, column):
@@ -121,7 +132,7 @@ class Maze:
         bottom_right_x = top_left_x + self._cell_size_x
         bottom_right_y = top_left_y + self._cell_size_y
         cell.draw(top_left_x, top_left_y, bottom_right_x, bottom_right_y)
-        self._animate(self.cell_draw_speed)
+        self._animate(self.animation_draw_speed)
 
     def _animate(self, time=0.05):
         if not self._win:
@@ -151,7 +162,7 @@ class Maze:
             random_direction = random.choice(to_visit)
             self._break_walls((i, j), random_direction, random_direction[2])
             self._break_walls_r(random_direction[0], random_direction[1])
-            self._animate()
+            self._animate(self.animation_draw_speed)
 
     def _break_walls_iteratively(self, i, j):
         to_visit = [(i, j)]
@@ -182,7 +193,7 @@ class Maze:
                 )
 
                 to_visit.extend(neighbors)
-                self._animate(self.break_draw_speed)
+                self._animate(self.animation_draw_speed)
 
     def _check_adjacent_cells(self, i, j):
         to_visit = []
@@ -233,12 +244,20 @@ class Maze:
                 if self._cells[i][j]._visited:
                     self._cells[i][j]._visited = False
 
-    def solve(self, method="DFS"):
+    def solve(self, solve_method=SolveMethod.DFS):
         # TODO
-        print(self._solve_astar(0, 0))
+        # need to do something with the output or something lol
+
+        match solve_method:
+            case SolveMethod.DFS:
+                self._solve_r(0, 0)
+            case SolveMethod.BFS:
+                self._solve_bfs(0, 0)
+            case SolveMethod.ASTAR:
+                self._solve_astar(0, 0)
 
     def _solve_r(self, i, j):
-        self._animate(self.path_draw_speed)
+        self._animate(self.animation_draw_speed)
         current_cell = self._cells[i][j]
         current_cell._visited = True
 
@@ -290,7 +309,7 @@ class Maze:
         came_from = {}
 
         while len(to_visit) != 0:
-            self._animate(self.path_draw_speed)
+            self._animate(self.animation_draw_speed)
             current_cell = to_visit.pop(0)
             i, j = current_cell[0], current_cell[1]
             current_cell = self._cells[i][j]
@@ -353,7 +372,7 @@ class Maze:
         g_score = {start[1]: 0}
 
         while open_set:
-            self._animate(self.path_draw_speed)
+            self._animate(self.animation_draw_speed)
             f_score, current = open_set.pop(0)
             current_cell = self._cells[current[0]][current[1]]
             current_cell.visited = True
