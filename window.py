@@ -1,6 +1,12 @@
 from tkinter import Tk, BOTH, Canvas, Menu, Toplevel, Label, Entry, Button, ttk
 import re
-from maze import Maze, PrintCommand, ChangeConfiguration
+from maze import (
+    Maze,
+    PrintCommand,
+    ChangeConfiguration,
+    ChangeAnimationSpeed,
+    SolveMethod,
+)
 
 DISPLAY_RESOLUTIONS = {
     "1920×1080": (1920, 1080),
@@ -120,9 +126,7 @@ class MenuOption(Menu):
         row_label = Label(config_window, text="Row:")
         column_label = Label(config_window, text="Column:")
         display_label = Label(config_window, text="Resolution:")
-        break_speed_label = Label(config_window, text="Wall Break Speed:")
-        cell_speed_label = Label(config_window, text="Cell Draw Speed:")
-        path_speed_label = Label(config_window, text="Path Speed:")
+        animation_speed_label = Label(config_window, text="Cell Draw Speed:")
         row_label_field = Entry(
             config_window,
             validate="key",
@@ -133,17 +137,7 @@ class MenuOption(Menu):
             validate="key",
             validatecommand=(config_window.register(self.validate_int_val), "%P"),
         )
-        cell_speed_entry = Entry(
-            config_window,
-            validate="key",
-            validatecommand=(config_window.register(self.validate_float_val), "%P"),
-        )
-        break_speed_entry = Entry(
-            config_window,
-            validate="key",
-            validatecommand=(config_window.register(self.validate_float_val), "%P"),
-        )
-        path_speed_entry = Entry(
+        animation_speed_entry = Entry(
             config_window,
             validate="key",
             validatecommand=(config_window.register(self.validate_float_val), "%P"),
@@ -168,7 +162,9 @@ class MenuOption(Menu):
             ),
         )
         set_speed_button = Button(
-            config_window, text="Set Speeds", command=lambda: print("sonic")
+            config_window,
+            text="Set Speeds",
+            command=lambda: self.changeAnimationSpeed(animation_speed_entry.get()),
         )
 
         # position the widgets and draw them
@@ -181,19 +177,15 @@ class MenuOption(Menu):
         display_label.grid(row=2, column=0, sticky="ns")
         resize_button.grid(row=3, column=0, columnspan=2, sticky="n")
 
-        cell_speed_label.grid(row=3, column=0, sticky="s")
-        cell_speed_entry.grid(row=3, column=1, sticky="ws")
-        break_speed_label.grid(row=4, column=0, sticky="")
-        break_speed_entry.grid(row=4, column=1, sticky="w")
-        path_speed_label.grid(row=5, column=0, sticky="n")
-        path_speed_entry.grid(row=5, column=1, sticky="nw")
+        animation_speed_label.grid(row=3, column=0, sticky="s")
+        animation_speed_entry.grid(row=3, column=1, sticky="ws")
         set_speed_button.grid(row=5, column=0, columnspan=2, sticky="s")
 
         row_label_field.insert(0, "12")
         column_label_field.insert(0, "12")
-        cell_speed_entry.insert(0, "0.0")
-        break_speed_entry.insert(0, "0.0")
-        path_speed_entry.insert(0, "0.0")
+        animation_speed_entry.insert(
+            0, str(self.root_win.maze.get_animation_draw_speed())
+        )
         display_combo.grid(row=2, column=1)
         display_combo.current(0)
 
@@ -209,6 +201,15 @@ class MenuOption(Menu):
         if (re.match("^[0-9]*$", value)) and (len(value) < 4):
             return True
         return False
+
+    def changeAnimationSpeed(self, speed):
+        cmd = ChangeAnimationSpeed(self.root_win.maze)
+        try:
+            speed = float(speed)
+            cmd.execute(speed)
+        except ValueError:
+            print("float conversion went wrong")
+            cmd.execute(None)
 
     def change_maze_size(self, row, column):
         row_value = row.get()
@@ -228,6 +229,10 @@ class MenuOption(Menu):
         else:
             row.configure(highlightbackground="red", highlightcolor="red")
             column.configure(highlightbackground="red", highlightcolor="red")
+
+    def runMazeSolver(self):
+        # TODO
+        pass
 
 
 class Window(Toplevel):
