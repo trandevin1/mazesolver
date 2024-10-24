@@ -6,9 +6,9 @@ from enum import Enum
 
 
 class SolveMethod(Enum):
-    ASTAR = 0
+    DFS = 0
     BFS = 1
-    DFS = 2
+    ASTAR = 2
 
 
 class Command(ABC):
@@ -46,6 +46,14 @@ class ChangeAnimationSpeed(Command):
         self.reciever.set_animation_draw_speed(speed)
 
 
+class Run(Command):
+    def __init__(self, reciever):
+        self.reciever = reciever
+
+    def execute(self, solve_method):
+        self.reciever.run(solve_method)
+
+
 class Maze:
     def __init__(
         self,
@@ -80,7 +88,6 @@ class Maze:
 
     def run(self, solve_method):
         # TODO
-        pass
         self.draw_state = True
         self._create_cells()
         self._break_entrance_and_exit()
