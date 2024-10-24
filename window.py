@@ -111,58 +111,76 @@ class MenuOption(Menu):
     def __init__(self, root):
         self.root_win = root
         super().__init__(root, tearoff=0)
+        self.config_window = None
         self.add_command(label="Maze Configuration", command=self.maze_configuration)
         self.add_command(label="Exit", command=self.root_win.close)
 
-    def maze_configuration(self):
-        # make a window
-        config_window = Window(self.root_win, "Maze Configuration", "300x600")
-        config_window.resizable(False, False)
+    def close_window(self, param1):
+        self.config_window.destroy()
+        self.config_window = None
 
-        config_window.columnconfigure((0, 1), weight=1, uniform="a")
-        config_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 8, 9), weight=1, uniform="a")
+    def maze_configuration(self):
+        # TODO remove some buttons just have one run button to set everything
+        # other than display res
+        # add algo options
+        # maybe make this into another thread possibly
+
+        # make a window
+        if self.config_window is None:
+            self.config_window = Window(self.root_win, "Maze Configuration", "300x600")
+            self.config_window.bind("<Destroy>", self.close_window)
+
+        self.config_window.resizable(False, False)
+
+        self.config_window.columnconfigure((0, 1), weight=1, uniform="a")
+        self.config_window.rowconfigure(
+            (0, 1, 2, 3, 4, 5, 6, 8, 9), weight=1, uniform="a"
+        )
 
         # create widgets
-        row_label = Label(config_window, text="Row:")
-        column_label = Label(config_window, text="Column:")
-        display_label = Label(config_window, text="Resolution:")
-        animation_speed_label = Label(config_window, text="Cell Draw Speed:")
+        row_label = Label(self.config_window, text="Row:")
+        column_label = Label(self.config_window, text="Column:")
+        display_label = Label(self.config_window, text="Resolution:")
+        animation_speed_label = Label(self.config_window, text="Cell Draw Speed:")
         row_label_field = Entry(
-            config_window,
+            self.config_window,
             validate="key",
-            validatecommand=(config_window.register(self.validate_int_val), "%P"),
+            validatecommand=(self.config_window.register(self.validate_int_val), "%P"),
         )
         column_label_field = Entry(
-            config_window,
+            self.config_window,
             validate="key",
-            validatecommand=(config_window.register(self.validate_int_val), "%P"),
+            validatecommand=(self.config_window.register(self.validate_int_val), "%P"),
         )
         animation_speed_entry = Entry(
-            config_window,
+            self.config_window,
             validate="key",
-            validatecommand=(config_window.register(self.validate_float_val), "%P"),
+            validatecommand=(
+                self.config_window.register(self.validate_float_val),
+                "%P",
+            ),
         )
 
         set_button = Button(
-            config_window,
+            self.config_window,
             text="Set",
             command=lambda: self.change_maze_size(row_label_field, column_label_field),
         )
         display_combo = ttk.Combobox(
-            config_window,
+            self.config_window,
             values=list(DISPLAY_RESOLUTIONS.keys()),
             width=10,
             state="readonly",
         )
         resize_button = Button(
-            config_window,
+            self.config_window,
             text="Resize",
             command=lambda: self.root_win.canvas.resize_canvas(
                 DISPLAY_RESOLUTIONS[display_combo.get()]
             ),
         )
         set_speed_button = Button(
-            config_window,
+            self.config_window,
             text="Set Speeds",
             command=lambda: self.changeAnimationSpeed(animation_speed_entry.get()),
         )
@@ -179,7 +197,7 @@ class MenuOption(Menu):
 
         animation_speed_label.grid(row=3, column=0, sticky="s")
         animation_speed_entry.grid(row=3, column=1, sticky="ws")
-        set_speed_button.grid(row=5, column=0, columnspan=2, sticky="s")
+        set_speed_button.grid(row=4, column=0, columnspan=2, sticky="s")
 
         row_label_field.insert(0, "12")
         column_label_field.insert(0, "12")
@@ -189,10 +207,13 @@ class MenuOption(Menu):
         display_combo.grid(row=2, column=1)
         display_combo.current(0)
 
-        # run_button = Button(config_window, text="Run", command=lambda: print("run"))
-        # run_button.grid(row=5, column=0, columnspan=2, sticky="s")
+        run_button = Button(
+            self.config_window, text="Run", command=lambda: print("run")
+        )
+        run_button.grid(columnspan=2, sticky="s")
 
     def validate_float_val(self, value):
+        # TODO need to fix value filed
         if re.match("^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$", value):
             return True
         return False
