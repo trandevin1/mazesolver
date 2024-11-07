@@ -1,6 +1,5 @@
 from window import App
 
-
 def main():
     """
     This main function serves as an entry point to the main app.
