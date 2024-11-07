@@ -1,11 +1,23 @@
-from tkinter import Tk, BOTH, Canvas, Menu, Toplevel, Label, Entry, Button, ttk
+from tkinter import (
+    Tk,
+    BOTH,
+    Canvas,
+    Menu,
+    Toplevel,
+    Label,
+    Entry,
+    Button,
+    ttk,
+    Radiobutton,
+    IntVar,
+)
 import re
 from maze import (
     Maze,
-    PrintCommand,
     ChangeConfiguration,
     ChangeAnimationSpeed,
     SolveMethod,
+    Run,
 )
 
 DISPLAY_RESOLUTIONS = {
@@ -104,9 +116,6 @@ class MenuBar(Menu):
         root.config(menu=self)
 
 
-# TODO make a class to contain the maze config window
-
-
 class MenuOption(Menu):
     def __init__(self, root):
         self.root_win = root
@@ -115,149 +124,216 @@ class MenuOption(Menu):
         self.add_command(label="Maze Configuration", command=self.maze_configuration)
         self.add_command(label="Exit", command=self.root_win.close)
 
-    def close_window(self, param1):
+    def close_window(self):
         self.config_window.destroy()
         self.config_window = None
 
     def maze_configuration(self):
-        # TODO remove some buttons just have one run button to set everything
-        # other than display res
-        # add algo options
+        # TODO
         # maybe make this into another thread possibly
+        if self.config_window:
+            return
 
         # make a window
         if self.config_window is None:
-            self.config_window = Window(self.root_win, "Maze Configuration", "300x600")
-            self.config_window.bind("<Destroy>", self.close_window)
+            self.config_window = MazeConfig(
+                self.root_win, "Maze Configuration", "300x600"
+            )
+            self.config_window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         self.config_window.resizable(False, False)
 
-        self.config_window.columnconfigure((0, 1), weight=1, uniform="a")
-        self.config_window.rowconfigure(
-            (0, 1, 2, 3, 4, 5, 6, 8, 9), weight=1, uniform="a"
-        )
 
-        # create widgets
-        row_label = Label(self.config_window, text="Row:")
-        column_label = Label(self.config_window, text="Column:")
-        display_label = Label(self.config_window, text="Resolution:")
-        animation_speed_label = Label(self.config_window, text="Cell Draw Speed:")
-        row_label_field = Entry(
-            self.config_window,
+class MazeConfig(Toplevel):
+    def __init__(self, root, title, geometry):
+        super().__init__(root)
+        self.root = root
+        self.title(title)
+        self.geometry(geometry)
+        # create rowcol frame
+        self.row_col_frame = RowColFrame(self)
+        # create display resolution frame
+        self.display_resolution_frame = DisplayResolutionFrame(self, self.root)
+        # create animation speed frame
+        self.animation_speed_frame = AnimationSpeedFrame(self, self.root)
+        # create algorithm frame
+        self.algorithm_frame = AlgorithmFrame(self, self.root)
+        # position the widgets within the window and display them
+        self.widget_configuration()
+
+    def widget_configuration(self):
+        self.row_col_frame.pack(pady=20)
+        self.display_resolution_frame.pack(pady=20)
+        self.animation_speed_frame.pack(pady=20)
+        self.algorithm_frame.pack(pady=20)
+
+
+class RowColFrame(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.row_label = Label(self, text="Row:")
+        self.column_label = Label(self, text="Column:")
+        self.row_label_field = Entry(
+            self,
             validate="key",
-            validatecommand=(self.config_window.register(self.validate_int_val), "%P"),
+            validatecommand=(self.register(self.validate_int_val), "%P"),
+            width=5,
         )
-        column_label_field = Entry(
-            self.config_window,
+        self.column_label_field = Entry(
+            self,
             validate="key",
-            validatecommand=(self.config_window.register(self.validate_int_val), "%P"),
+            validatecommand=(self.register(self.validate_int_val), "%P"),
+            width=5,
         )
-        animation_speed_entry = Entry(
-            self.config_window,
-            validate="key",
-            validatecommand=(
-                self.config_window.register(self.validate_float_val),
-                "%P",
-            ),
-        )
+        self.position()
+        self.row_label_field.insert(0, "12")
+        self.column_label_field.insert(0, "12")
 
-        set_button = Button(
-            self.config_window,
-            text="Set",
-            command=lambda: self.change_maze_size(row_label_field, column_label_field),
-        )
-        display_combo = ttk.Combobox(
-            self.config_window,
-            values=list(DISPLAY_RESOLUTIONS.keys()),
-            width=10,
-            state="readonly",
-        )
-        resize_button = Button(
-            self.config_window,
-            text="Resize",
-            command=lambda: self.root_win.canvas.resize_canvas(
-                DISPLAY_RESOLUTIONS[display_combo.get()]
-            ),
-        )
-        set_speed_button = Button(
-            self.config_window,
-            text="Set Speeds",
-            command=lambda: self.changeAnimationSpeed(animation_speed_entry.get()),
-        )
-
-        # position the widgets and draw them
-        row_label.grid(row=0, column=0, sticky="n")
-        row_label_field.grid(row=0, column=0, sticky="s")
-        column_label.grid(row=0, column=1, sticky="n")
-        column_label_field.grid(row=0, column=1, sticky="s")
-        set_button.grid(row=1, column=0, columnspan=2, sticky="")
-
-        display_label.grid(row=2, column=0, sticky="ns")
-        resize_button.grid(row=3, column=0, columnspan=2, sticky="n")
-
-        animation_speed_label.grid(row=3, column=0, sticky="s")
-        animation_speed_entry.grid(row=3, column=1, sticky="ws")
-        set_speed_button.grid(row=4, column=0, columnspan=2, sticky="s")
-
-        row_label_field.insert(0, "12")
-        column_label_field.insert(0, "12")
-        animation_speed_entry.insert(
-            0, str(self.root_win.maze.get_animation_draw_speed())
-        )
-        display_combo.grid(row=2, column=1)
-        display_combo.current(0)
-
-        run_button = Button(
-            self.config_window, text="Run", command=lambda: print("run")
-        )
-        run_button.grid(columnspan=2, sticky="s")
-
-    def validate_float_val(self, value):
-        # TODO need to fix value filed
-        if re.match("^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$", value):
-            return True
-        return False
+    def position(self):
+        self.row_label.grid(row=0, column=0)
+        self.row_label_field.grid(row=0, column=1)
+        self.column_label.grid(row=1, column=0)
+        self.column_label_field.grid(row=1, column=1)
 
     def validate_int_val(self, value):
         if (re.match("^[0-9]*$", value)) and (len(value) < 4):
             return True
         return False
 
-    def changeAnimationSpeed(self, speed):
-        cmd = ChangeAnimationSpeed(self.root_win.maze)
+    def get_row_value(self):
         try:
-            speed = float(speed)
-            cmd.execute(speed)
-        except ValueError:
-            print("float conversion went wrong")
-            cmd.execute(None)
+            value = int(self.row_label_field.get())
+        except:
+            print("something went wrong in converting row value into int")
+            value = 12
+        return value
 
-    def change_maze_size(self, row, column):
-        row_value = row.get()
-        column_value = column.get()
-        if (
-            row_value != ""
-            and column_value != ""
-            and (2 < int(row_value) < 101)
-            and (2 < int(column_value) < 101)
-            and not self.root_win.maze.draw_state
-        ):
-            row.configure(highlightbackground="green", highlightcolor="green")
-            column.configure(highlightbackground="green", highlightcolor="green")
-            self.root_win.canvas.clear_screen()
-            cmd = ChangeConfiguration(self.root_win.maze)
-            cmd.execute(int(row_value), int(column_value))
-        else:
-            row.configure(highlightbackground="red", highlightcolor="red")
-            column.configure(highlightbackground="red", highlightcolor="red")
-
-    def runMazeSolver(self):
-        # TODO
-        pass
+    def get_col_value(self):
+        try:
+            value = int(self.column_label_field.get())
+        except:
+            print("something went wrong in converting col value into int")
+            value = 12
+        return value
 
 
-class Window(Toplevel):
-    def __init__(self, root, title, geometry):
-        super().__init__(root)
-        self.title(title)
-        self.geometry(geometry)
+class DisplayResolutionFrame(ttk.Frame):
+    def __init__(self, parent, root):
+        super().__init__(parent)
+        self.parent = parent
+        self.display_label = Label(self, text="Resolution:")
+        self.display_combo = ttk.Combobox(
+            self,
+            values=list(DISPLAY_RESOLUTIONS.keys()),
+            width=10,
+            state="readonly",
+        )
+        self.resize_button = Button(
+            self,
+            text="Resize",
+            command=lambda: root.canvas.resize_canvas(
+                DISPLAY_RESOLUTIONS[self.display_combo.get()]
+            ),
+        )
+        self.position()
+        self.display_combo.current(0)
+
+    def position(self):
+        self.display_label.grid(row=0, column=0)
+        self.display_combo.grid(row=0, column=1)
+        self.resize_button.grid(row=1, column=0, columnspan=2)
+
+
+class AnimationSpeedFrame(ttk.Frame):
+    def __init__(self, parent, root):
+        super().__init__(parent)
+        self.root = root
+        self.animation_speed_label = Label(self, text="Cell Draw Speed:")
+        self.speed_combo = ttk.Combobox(
+            self,
+            values=["Very Slow", "Slow", "Normal", "Fast", "Very Fast"],
+            width=10,
+            state="readonly",
+        )
+        self.speed_combo.bind("<<ComboboxSelected>>", self.changeAnimationSpeed)
+        self.position()
+        self.speed_combo.current(2)
+
+    def position(self):
+        self.animation_speed_label.grid(row=0, column=0)
+        self.speed_combo.grid(row=0, column=1)
+
+    ## TODO
+    def changeAnimationSpeed(self, _):
+        # speed placeholder for now
+        speed = 0.05
+        match self.speed_combo.get():
+            case "Very Slow":
+                speed = 0.3
+            case "Slow":
+                speed = 0.1
+            case "Normal":
+                speed = 0.05
+            case "Fast":
+                speed = 0.005
+            case "Very Fast":
+                speed = 0.0001
+        cmd = ChangeAnimationSpeed(self.root.maze)
+        cmd.execute(speed=speed)
+
+
+class AlgorithmFrame(ttk.Frame):
+    def __init__(self, parent, root):
+        super().__init__(parent)
+        self.parent = parent
+        self.root = root
+        res = IntVar(self, SolveMethod.DFS.value)
+
+        # get rid of row col set button
+        self.ASTAR_radio = Radiobutton(
+            self,
+            text="A* Pathing",
+            variable=res,
+            value=SolveMethod.ASTAR.value,
+        )
+        self.DFS_radio = Radiobutton(
+            self,
+            text="Depth First Pathing",
+            variable=res,
+            value=SolveMethod.DFS.value,
+        )
+        self.BFS_radio = Radiobutton(
+            self,
+            text="Breadth First Pathing",
+            variable=res,
+            value=SolveMethod.BFS.value,
+        )
+        # change placeholder arugments back after refactoring
+        self.run_button = Button(
+            self,
+            text="Run",
+            command=lambda: self.runMazeSolver(
+                res.get(),
+                self.parent.row_col_frame.get_row_value(),
+                self.parent.row_col_frame.get_col_value(),
+            ),
+        )
+        self.position()
+
+    def position(self):
+        self.ASTAR_radio.grid()
+        self.BFS_radio.grid()
+        self.DFS_radio.grid()
+        self.run_button.grid()
+
+    def runMazeSolver(self, solve_method, row_value=None, column_value=None):
+        self.root.canvas.clear_screen()
+        match solve_method:
+            case SolveMethod.DFS.value:
+                self.root.title("Depth First Search")
+            case SolveMethod.BFS.value:
+                self.root.title("Breadth First Search")
+            case SolveMethod.ASTAR.value:
+                self.root.title("A* Pathing")
+        cmd = Run(self.root.maze)
+        cmd.execute(solve_method, row_value=row_value, col_value=column_value)
