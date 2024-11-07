@@ -20,14 +20,6 @@ class Command(ABC):
         pass
 
 
-class PrintCommand(Command):
-    def __init__(self, reciever):
-        self.reciever = reciever
-
-    def execute(self, values):
-        self.reciever._print(values)
-
-
 class ChangeConfiguration(Command):
     def __init__(self, reciever):
         self.reciever = reciever
@@ -50,8 +42,8 @@ class Run(Command):
     def __init__(self, reciever):
         self.reciever = reciever
 
-    def execute(self, solve_method):
-        self.reciever.run(solve_method)
+    def execute(self, solve_method, row_value, col_value):
+        self.reciever.run(solve_method, row_value, col_value)
 
 
 class Maze:
@@ -86,18 +78,22 @@ class Maze:
     def get_animation_draw_speed(self) -> float:
         return self.animation_draw_speed
 
-    def run(self, solve_method):
+    def run(self, solve_method, row_value, col_value):
         # TODO
         self.draw_state = True
+        self._change_maze_size(row_value, col_value)
         self._create_cells()
         self._break_entrance_and_exit()
-        self._break_walls_iteratively(0, 0)
+        (
+            self._break_walls_iteratively(0, 0)
+            if self._num_rows > 30 and self._num_cols > 30
+            else self._break_walls_r(0, 0)
+        )
         self._reset_visited()
         self.solve(solve_method)
         self.draw_state = False
 
     def inital_run(self):
-        # TODO
         self.draw_state = True
         self._create_cells()
         self._break_entrance_and_exit()
@@ -107,15 +103,16 @@ class Maze:
         self.draw_state = False
 
     def _change_maze_size(self, row, column):
-        self._num_cols = column
-        self._num_rows = row
+        if row is not None:
+            self._num_rows = row
+        if column is not None:
+            self._num_cols = column
         self._cell_size_x = (
             self._win.canvas.winfo_width() - 2 * self._x1
         ) // self._num_rows
         self._cell_size_y = (
             self._win.canvas.winfo_height() - 2 * self._y1
         ) // self._num_cols
-        self._create_cells()
 
     def _create_cells(self):
         self._cells = []
@@ -251,17 +248,21 @@ class Maze:
                 if self._cells[i][j]._visited:
                     self._cells[i][j]._visited = False
 
-    def solve(self, solve_method=SolveMethod.DFS):
+    def solve(self, solve_method=SolveMethod.DFS.value):
         # TODO
         # need to do something with the output or something lol
 
+        print(solve_method)
         match solve_method:
-            case SolveMethod.DFS:
-                self._solve_r(0, 0)
-            case SolveMethod.BFS:
-                self._solve_bfs(0, 0)
-            case SolveMethod.ASTAR:
-                self._solve_astar(0, 0)
+            case SolveMethod.DFS.value:
+                print("running dfs")
+                print(self._solve_r(0, 0))
+            case SolveMethod.BFS.value:
+                print("running bfs")
+                print(self._solve_bfs(0, 0))
+            case SolveMethod.ASTAR.value:
+                print("running astar")
+                print(self._solve_astar(0, 0))
 
     def _solve_r(self, i, j):
         self._animate(self.animation_draw_speed)
