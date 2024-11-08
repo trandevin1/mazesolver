@@ -1,5 +1,5 @@
 from cell import Cell
-from time import sleep
+from time import sleep, time
 import random
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -12,6 +12,9 @@ class SolveMethod(Enum):
 
 
 class Command(ABC):
+    """
+    Abstract class for command pattern
+    """
     def __init__(self, reciever):
         self.reciever = reciever
 
@@ -103,6 +106,9 @@ class Maze:
         self.draw_state = False
 
     def _change_maze_size(self, row, column):
+        """
+        Changes the size of the maze and dimensions of the maze
+        """
         if row is not None:
             self._num_rows = row
         if column is not None:
@@ -115,6 +121,9 @@ class Maze:
         ) // self._num_cols
 
     def _create_cells(self):
+        """
+        Create maze cells
+        """
         self._cells = []
         for _ in range(self._num_rows):
             col_list = []
@@ -124,33 +133,50 @@ class Maze:
 
         for i in range(self._num_rows):
             for j in range(self._num_cols):
-                self._draw_cells(i, j)
+                self._draw_cell(i, j)
 
-    def _draw_cells(self, i, j):
+    def _draw_cell(self, i, j):
+        """
+        Draws each cell to the canvas.
+        """
         if not self._win:
             return
+
+        # Get current cell to draw
         cell = self._cells[i][j]
 
+        # Calculate position of cell from the canvas
         top_left_x = self._x1 + (self._cell_size_x * i)
         top_left_y = self._y1 + (self._cell_size_y * j)
         bottom_right_x = top_left_x + self._cell_size_x
         bottom_right_y = top_left_y + self._cell_size_y
+
+        # Draw cell to canvas
         cell.draw(top_left_x, top_left_y, bottom_right_x, bottom_right_y)
         self._animate(self.animation_draw_speed)
 
     def _animate(self, time=0.05):
+        """
+        Slows down the drawing animation
+        """
         if not self._win:
             return
         self._win.redraw()
         sleep(time)
 
     def _break_entrance_and_exit(self):
+        """
+        Set the start and end goal by breaking down the walls.
+        """
         self._cells[0][0].has_top_wall = False
-        self._draw_cells(0, 0)
+        self._draw_cell(0, 0)
         self._cells[self._num_rows - 1][self._num_cols - 1].has_bottom_wall = False
-        self._draw_cells(self._num_rows - 1, self._num_cols - 1)
+        self._draw_cell(self._num_rows - 1, self._num_cols - 1)
 
     def _break_walls_r(self, i, j):
+        """
+        Randomly break down walls between two cells.
+        """
         self._cells[i][j]._visited = True
 
         while True:
@@ -169,6 +195,9 @@ class Maze:
             self._animate(self.animation_draw_speed)
 
     def _break_walls_iteratively(self, i, j):
+        """
+        Breaks down the walls using iteration instead of recursion if the maze is too big.
+        """
         to_visit = [(i, j)]
 
         while to_visit:
@@ -180,7 +209,7 @@ class Maze:
             # get neighbors
             neighbors = self._check_adjacent_cells(current[0], current[1])
 
-            # random direction
+            # choose random direction
             if neighbors:
                 random_direction = random.choice(neighbors)
                 self._break_walls(
@@ -200,6 +229,9 @@ class Maze:
                 self._animate(self.animation_draw_speed)
 
     def _check_adjacent_cells(self, i, j):
+        """
+        Checks adjacent nodes from the given cell index.
+        """
         to_visit = []
         # check above
         if ((j + 1) > -1 and j + 1 < self._num_cols) and (
@@ -227,6 +259,9 @@ class Maze:
         return to_visit
 
     def _break_walls(self, current, next, direction):
+        """
+        Breaks the walls from the current cell and next cell depending on the direction.
+        """
         if direction == "up":
             self._cells[current[0]][current[1]].has_bottom_wall = False
             self._cells[next[0]][next[1]].has_top_wall = False
@@ -243,29 +278,39 @@ class Maze:
             return
 
     def _reset_visited(self):
+        """
+        This sets all the cells back to unvisited.
+        """
         for i in range(self._num_rows):
             for j in range(self._num_cols):
                 if self._cells[i][j]._visited:
                     self._cells[i][j]._visited = False
 
     def solve(self, solve_method=SolveMethod.DFS.value):
-        # TODO
-        # need to do something with the output or something lol
-
-        print(solve_method)
         match solve_method:
             case SolveMethod.DFS.value:
-                print("running dfs")
-                print(self._solve_r(0, 0))
+                start = time()
+                self._solve_r(0, 0)
+                end = time()
+                algorithm = "Depth First Search"
             case SolveMethod.BFS.value:
-                print("running bfs")
-                print(self._solve_bfs(0, 0))
+                start = time()
+                self._solve_bfs(0, 0)
+                end = time()
+                algorithm = "Breadth First Search"
             case SolveMethod.ASTAR.value:
-                print("running astar")
-                print(self._solve_astar(0, 0))
+                start = time()
+                self._solve_astar(0, 0)
+                end = time()
+                algorithm = "A*"
+        print(f"{algorithm} time: {end - start} seconds")
 
     def _solve_r(self, i, j):
+        """
+        Simple Depth First Search pathing using recursion and backtracking.
+        """
         self._animate(self.animation_draw_speed)
+
         current_cell = self._cells[i][j]
         current_cell._visited = True
 
@@ -274,6 +319,7 @@ class Maze:
 
         directions = self._check_adjacent_cells(i, j)
 
+        # TODO make this look nicer lol
         for direction in directions:
             next_cell = self._cells[direction[0]][direction[1]]
             if direction[2] == "up":
@@ -311,18 +357,29 @@ class Maze:
         return False
 
     def _solve_bfs(self, i, j):
+        """
+        Simple breadth first search pathing
+        """
+
+        # Instantiate start node and node queue
         start = (i, j)
         to_visit = [start]
 
         came_from = {}
 
+        # Get current node until queue is empty
         while len(to_visit) != 0:
             self._animate(self.animation_draw_speed)
             current_cell = to_visit.pop(0)
             i, j = current_cell[0], current_cell[1]
             current_cell = self._cells[i][j]
             current_cell._visited = True
+
+            # Found Goal Cell
             if current_cell == self._cells[self._num_rows - 1][self._num_cols - 1]:
+
+                # TODO just make this into another function too much for this
+                # Backtrack to get the path the algorithm took
                 path = []
                 traversal = (i, j)
                 while traversal in came_from:
@@ -330,9 +387,9 @@ class Maze:
                     traversal = came_from[traversal]
                 path.append(start)
                 path.reverse()
-                print(path)
-                for index in range(len(path) - 1):
 
+                # Highlights the path from start to finish
+                for index in range(len(path) - 1):
                     current = path[index]
                     next = path[index + 1]
                     current_node = self._cells[current[0]][current[1]]
@@ -341,12 +398,15 @@ class Maze:
 
                 return True
 
+            # Get next valid cell to move
             neighbors = self._check_adjacent_cells(i, j)
 
             for neighbor in neighbors:
+                # Find next cell to move
                 next_cell = self._cells[neighbor[0]][neighbor[1]]
                 direction = neighbor[2]
 
+                # TODO possibly make this into another function for readability
                 if direction == "up":
                     if not current_cell.has_bottom_wall and not next_cell.has_top_wall:
                         current_cell.draw_move(next_cell)
@@ -374,16 +434,27 @@ class Maze:
         return False
 
     def _solve_astar(self, i, j):
+        """
+        A simplified version of the A* algorithm using a basic heuristic to find the finish line.
+        """
+
+        # Instantiate start position and node queue
         start = (0, (i, j))
         open_set = [start]
         came_from = {}
         g_score = {start[1]: 0}
 
+        # While there are nodes to visit
         while open_set:
+            # Draw the move from one cell to another
             self._animate(self.animation_draw_speed)
+
+            # Get current node
             f_score, current = open_set.pop(0)
             current_cell = self._cells[current[0]][current[1]]
             current_cell.visited = True
+
+            # End goal would be the last cell
             if current == (self._num_rows - 1, self._num_cols - 1):
                 return True
 
