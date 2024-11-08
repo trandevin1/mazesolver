@@ -1,9 +1,9 @@
 from point import Line, Point
 
-# refactor this
-
-
 class Cell:
+    """
+    Object to define and draw a cell with their movements
+    """
     def __init__(
         self,
         win=None,
