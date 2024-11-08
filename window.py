@@ -14,7 +14,6 @@ from tkinter import (
 import re
 from maze import (
     Maze,
-    ChangeConfiguration,
     ChangeAnimationSpeed,
     SolveMethod,
     Run,
@@ -129,15 +128,13 @@ class MenuOption(Menu):
         self.config_window = None
 
     def maze_configuration(self):
-        # TODO
-        # maybe make this into another thread possibly
         if self.config_window:
             return
 
         # make a window
         if self.config_window is None:
             self.config_window = MazeConfig(
-                self.root_win, "Maze Configuration", "300x600"
+                self.root_win, "Maze Configuration", "300x400"
             )
             self.config_window.protocol("WM_DELETE_WINDOW", self.close_window)
 
