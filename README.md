@@ -5,11 +5,11 @@ A quick program to visualize how algorithms operate.
 This program was implemented in Python 3.12 using Tkinter GUI to help visualize how certain algorithms work in a maze like structure.
 
 ### Features to implement
-- [] Decouple animation speed from window
+- [ ] Decouple animation speed from window
 - [x] Implement Breadth First Search
 - [x] Implement A*
 - [x] Time the algorithms
-- [] Multithread GUI
+- [ ] Multithread GUI
 
 # How to install and run in WSL or Linux
 
